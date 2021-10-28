@@ -17,7 +17,6 @@ def install(c):
     """
     util.start()
     # (1) Get the license key from the config
-    #     a127721f502417b2c85385477b88474fd2a5ace4
     license_key = c.config.newrelic.key
     # (2) Get the signatures for the repos
     c.run('wget -O - https://download.newrelic.com/548C16BF.gpg | sudo apt-key add -')
@@ -33,7 +32,6 @@ def install(c):
     #c.sudo("sudo -E bash -c 'echo $NR_INSTALL_KEY'")
     print(sudo_args)
     # (5) Create the config file for the infrastructure agent
-    #     license_key: a127721f502417b2c85385477b88474fd2a5ace4
     if not c.exists('/etc/newrelic-infra.yml'):
         c.sudo(f'bash -c "echo license_key: {license_key} > /etc/newrelic-infra.yml"')
     #
