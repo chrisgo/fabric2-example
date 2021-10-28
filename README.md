@@ -4,17 +4,23 @@ Example of how you can organize a set of **fabric2** scripts.  Mostly this is ju
 how I organized my fabric build and release process and sharing to possibly help
 other folks get started.
 
-Note: You should probably be using ansible or terraform if you need more support.
+Note: You should use
+[Ansible](https://www.ansible.com/) +
+[Ansistrano](https://github.com/ansistrano/deploy)
+or
+[Terraform](https://www.terraform.io)
+if you need more support.
 
-This project is using **fabric2** which is not backward compatible with the
-old fabric.  We need to upgrade to fabric2 because python 2.x is now being
-deprecated and will slowly stop working on Macs and other systems.  For
-fabric 1.x, the old example is here https://github.com/chrisgo/fabric-example
+We want to use **fabric2** to be able to handle the deprecation of Python 2.x.
+It will get harder and harder to install python 2.x into newer systems so we
+need to upgrade to be able to use Python 3.x that is now the default.  
+
+*Old fabric 1.x example is here https://github.com/chrisgo/fabric-example*
 
 * Fabric: http://fabfile.org
 * Fabric Docs: https://docs.fabfile.org/en/2.6/
 
-This example 100% using Python 3.x.  We are **NOT** doing any of the upgrades as
+This example using **Python 3.x** 100%.  We are **NOT** doing any of the upgrades as
 described in the documentation.  
 
 * NOT "side-grading"
@@ -22,14 +28,14 @@ described in the documentation.
 * NOT using config objects from v1
 
 On a Mac, you will need to run `source ~/venv-fabric2/bin/activate` on
-each terminal you start, see *Mac Setup* below
+each terminal you start, see [Mac Setup](#mac-setup)
 
 ---
 
 Mostly I deal with a standard LEMP stack (Linux, Nginx, MySQL and PHP-fpm) on Debian
 so please adapt for your own use.  The original goal was to deal with Vagrant and
 Linode or Amazon AWS but I ended up just implementing Vagrant and DigitalOcean as
-"deployment targets".
+"deployment targets".  Currently, this example is for Debian 10 (bullseye)
 
 These scripts should be run in the directory where the fabfile directory lives.  
 *If you do an ls, you should see the directory called "fabfile"*
@@ -75,31 +81,34 @@ fab dev www project                   # step 3 (project specific)
 
 For new servers (new file environments), we need to do some setup:
 
-1. Create the appropriate settings for the system, usually this is for a new developer
-   or a new server starting from scratch
-
+* Create the appropriate settings for the system, usually this is for a new developer
+  or a new server starting from scratch
 * Make sure to note down the provider (Vagrant, Linode, etc.)
 * Make sure this <environment> is unique across everything ever created for this project
 * The fabric system will pick up the settings for that environment
 
-2. Run through steps 1-3
+Run through steps 1-3
 
-    1. fab <environment> <role> normalize
-        * Normalizes each provider (Vagrant, Linode, etc)
-        * Installs basic setup for ALL servers
-    2. fab <environment> <role> server
-        * Installs more software by server role
-    3. fab <environment> <role> project
-        * Installs project-specific software by server role
-        * Also initializes the project on the server by server role
+1. fab <environment> <role> normalize
+  * Normalizes each provider (Vagrant, Linode, etc)
+  * Installs basic setup for ALL servers
+2. fab <environment> <role> server
+  * Installs more software by server role
+3. fab <environment> <role> project
+  * Installs project-specific software by server role
+  * Also initializes the project on the server by server role
 
 For normal releases to an environment (for example: dev), run
 
-    fab dev www release
+```
+fab dev www release
+```
 
 and for PRODUCTION, run it with a group argument
 
-    fab production www release
+```
+fab production www release
+```
 
 ### Mac Setup
 
