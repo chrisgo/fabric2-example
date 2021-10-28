@@ -1,7 +1,7 @@
 {
   "v3_use_offset": true,
-  "token_hmac_secret_key": "35e52da2-8922-42ad-8dfe-8b320425c090",
-  "api_key": "ae759ef2-6544-4d16-a49a-2d0c46033e48",
+  "token_hmac_secret_key": "",
+  "api_key": "",
   "admin": true,
   "admin_password": "{{password}}",
   "admin_secret": "{{password}}",
