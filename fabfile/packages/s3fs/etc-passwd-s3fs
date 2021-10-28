@@ -1,0 +1,4 @@
+# S3FS Password file
+# Buckets (format: bucketName:accessKeyId:secretAccessKey)
+
+bucketName:accessKeyId:secretAccessKey

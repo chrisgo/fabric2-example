@@ -1,0 +1,174 @@
+#
+# Ngxinx configuration file for secure websocket applications.
+#
+# - Listens on 80 (HTTP) and 443 (HTTPS)
+# - Redirects all port 80 traffic to port 443
+# - Manages load balancing across Node.js upstream processes.
+# - Also handles running node application under sub folders
+#
+# Main source
+# http://serverfault.com/questions/645643/using-nginx-to-proxy-multiple-instances-of-sockets-io
+#
+# Other notes
+# http://stackoverflow.com/questions/25896225/how-do-i-get-socket-io-running-for-a-subdirectory
+# https://www.exratione.com/2013/06/websockets-over-ssl-with-nodejs-and-nginx/
+#
+# Node Server Code
+#
+# (1) No changes, leave the code as is with just (http), no PATHs!
+#
+# var io = require('socket.io')(http);
+#
+#
+
+# Upstream node server for load balancing if necessary
+upstream node_index {
+    # Directs to the process with least number of connections.
+    #least_conn;
+    # One failed response will take a server out of circulation for 20 seconds.
+    server 127.0.0.1:3001 fail_timeout=20s;
+    #server 127.0.0.1:30011 fail_timeout=20s;
+    #server 127.0.0.1:30012 fail_timeout=20s;
+}
+
+upstream node_api {
+    # Directs to the process with least number of connections.
+    #least_conn;
+    # One failed response will take a server out of circulation for 20 seconds.
+    server 127.0.0.1:3002 fail_timeout=20s;
+    #server 127.0.0.1:30021 fail_timeout=20s;
+    #server 127.0.0.1:30022 fail_timeout=20s;
+}
+
+upstream node_socketio {
+    # Directs to the process with least number of connections.
+    #least_conn;
+    # One failed response will take a server out of circulation for 20 seconds.
+    server 127.0.0.1:3003 fail_timeout=20s;
+    #server 127.0.0.1:30031 fail_timeout=20s;
+    #server 127.0.0.1:30032 fail_timeout=20s;
+}
+
+
+server {
+
+    # Forward all port 80 to port 443
+    if ($http_x_forwarded_port != 443) { rewrite ^ https://$http_host$request_uri?; }
+
+    # Server name
+    server_name {{localhost}};
+
+}
+
+server {
+
+    # Port
+    listen   443;
+
+    # Document Root
+    root /var/www/{{project_name}}/web;
+
+    # Server name
+    server_name {{localhost}};
+
+    # Index file
+    index index.php index.htm;
+
+    # Increase max size of post to 10m (for file uploads)
+    client_max_body_size 20m;
+
+    # SSL (with Letsencrypt)
+    # Examples
+    #ssl_certificate /etc/selfsignedssl/live/chris-dev-nod.{{project_name}}.com/server.crt;
+    #ssl_certificate_key /etc/selfsignedssl/live/chris-dev-nod.{{oroject_name}}.com/server.key;
+    ssl on;
+    ssl_certificate {{ssl_cert}};
+    ssl_certificate_key {{ssl_cert_key}};
+
+    ssl_session_timeout 5m;
+    ssl_session_cache shared:SSL:10m; # Reuse session => less handshakes => better perfs
+
+    ssl_protocols TLSv1.1 TLSv1.2;
+    ssl_ciphers EECDH+CHACHA20:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Gzip compression
+    gzip  on;
+    gzip_http_version 1.0;
+    gzip_comp_level 2;
+    gzip_proxied any;
+    gzip_min_length  1100;
+    gzip_buffers 16 8k;
+    gzip_types text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript image/gif image/jpeg image/png;
+
+    gzip_disable "MSIE [1-6].(?!.*SV1)";
+    # Set a vary header so downstream proxies don't send cached gzipped
+    # content to IE6
+    gzip_vary on;
+
+    # For Letsencrypt automation
+    location ~ /.well-known {
+        allow all;
+    }
+
+    # Anything going to / will say forbidden
+    # which is not the end of the world
+    #location / {
+    #    index     home.html;
+    #}
+
+    # Split off traffic to Node.js backends, and make sure that websockets
+    # are managed correctly.
+    #location / {
+    #    proxy_pass http://node_{{project}}/;
+    #    proxy_http_version 1.1;
+    #    proxy_set_header Upgrade $http_upgrade;
+    #    proxy_set_header Connection "upgrade";
+    #    proxy_set_header Host $host;
+    #    proxy_cache_bypass $http_upgrade;
+    #}
+
+    # To run in a subfolder, we have to make a couple of changes
+    # This allows us to run multiple node apps off one DNS entry
+    # under server_name and then splinter off using subfolders
+    #
+    # We need to change ONLY the client code, server code is the same
+    #
+    # (1) You will need to find socket.io.js somewhere else and not served from node
+    #
+    # <script src="/socketio/socket.io.js"></script>                     <!-- will not work -->
+    # <script src="https://example.com/socketio/socket.io.js"></script>  <!-- somewhere else -->
+    #
+    # (2) Connection code needs base URL and path (path needs to be EXACTLY as below!)
+    #
+    # var socket = io('https://chris-dev-socketio.{{project_name}}.com', {path: "/app1/socket.io"});
+    #
+    location / {
+    	proxy_pass http://node_index/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /api/ {
+        proxy_pass http://node_api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /socketio/ {
+        proxy_pass http://node_socketio/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+
+}

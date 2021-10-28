@@ -1,0 +1,4 @@
+# Disable IPV6 
+# https://www.vultr.com/docs/force-apt-get-to-ipv4-or-ipv6-on-ubuntu-or-debian
+
+Acquire::ForceIPv4 "true";

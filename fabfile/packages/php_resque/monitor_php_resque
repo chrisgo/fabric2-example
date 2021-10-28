@@ -1,0 +1,29 @@
+#!/bin/bash
+
+ENV="development"
+ROOT="/vagrant"
+QUEUES="*"
+COUNT=2
+VERBOSE=1
+
+MINION="$ROOT/minion"
+TASK="resque"
+
+max_perc=25
+mem_perc=`ps aux | grep "php index.php --uri=minion --task=resque" | grep -v "grep" | sort -r -k4 | head -1 | awk '{print $4}'`
+mem_perc=$( printf "%.0f" $mem_perc )
+
+if [ $mem_perc -gt $max_perc ]
+then
+	echo "[$(date '+%Z %b %d %T')] PHP Resque has exceeded $max_perc percent of the system memory" >> /var/log/monitor_php_resque.log
+
+	cd $ROOT
+
+	echo "[$(date '+%Z %b %d %T')] Shutting down $COUNT PHP Resque workers" >> /var/log/monitor_php_resque.log
+	$MINION $TASK --shutdown --env=$ENV >> /dev/null
+
+	sleep 1
+
+	echo "[$(date '+%Z %b %d %T')] Starting $COUNT PHP Resque workers" >> /var/log/monitor_php_resque.log
+	$MINION $TASK --resque=$QUEUES --count=$COUNT --verbose=$VERBOSE --env=$ENV >> /dev/null
+fi

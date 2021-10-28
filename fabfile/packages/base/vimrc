@@ -1,0 +1,4 @@
+" Vim config
+
+syntax on
+colorscheme desert

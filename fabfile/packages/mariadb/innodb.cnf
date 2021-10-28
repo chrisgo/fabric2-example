@@ -1,0 +1,25 @@
+#
+# Innodb configuration added by fabric script
+# Settings optimized for 16GB RAM servers 
+# Buffer pool size 75% of all available memory
+#
+
+[mysqld]
+
+innodb_buffer_pool_size = 12GB
+#innodb_log_buffer_size  = 8M
+#innodb_file_per_table   = 1
+#innodb_open_files       = 400
+#innodb_io_capacity      = 400
+#innodb_flush_method     = O_DIRECT
+
+# Add this so that we can have indexes on
+# VARCHAR columns and not have to be under the 191
+# character limit for utf8mb4 encoding
+
+innodb_large_prefix     = 1
+innodb_file_format      = barracuda
+
+# the 2 keys below are already default to 1
+#innodb_file_per_table  = 1
+#innodb_strict_mode     = 1

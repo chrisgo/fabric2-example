@@ -1,0 +1,9 @@
+files:
+  - /var/log/mysql/error.log
+  - /var/log/mysql/mysql-slow.log
+destination:
+  host: logs.papertrailapp.com
+  port: 31784
+  protocol: tls
+exclude_patterns:
+  - don't log on me

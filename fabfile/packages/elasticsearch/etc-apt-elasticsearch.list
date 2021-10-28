@@ -1,0 +1,3 @@
+# Elastic.io
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
+deb https://packages.elastic.co/elasticsearch/2.x/debian stable main

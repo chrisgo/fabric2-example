@@ -1,0 +1,35 @@
+### BEGIN INIT INFO
+# Provides:          centrifugo
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: centrifugo daemon
+# Description:       Startup script for centrifugo websocket server
+### END INIT INFO
+
+CENTRIFUGO=/usr/bin/centrifugo
+CENTRIFUGO_ARGS="--config=/etc/centrifugo/config.json --log_file=/var/log/centrifugo.log"
+
+PIDFILE=/var/run/centrifugo.pid
+case "$1" in
+  start)
+    echo -n "Starting Centrifugo ..."
+    start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $CENTRIFUGO -- $CENTRIFUGO_ARGS
+    echo "."
+    ;;
+  stop)
+    echo -n "Stopping Centrifugo ..."
+    start-stop-daemon --stop --quiet --pidfile $PIDFILE
+    echo "."
+    ;;
+  restart)
+    $0 stop
+    $0 start
+    ;;
+  *)
+        echo "Usage: /etc/init.d/centrifugo {start|stop|restart}"
+        exit 1
+esac
+
+exit 0

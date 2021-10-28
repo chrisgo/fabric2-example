@@ -1,0 +1,10 @@
+#
+# Replication configuration added by fabric script
+#
+
+[mysqld]
+
+server_id           = {{server_id}}
+log_bin             = /var/log/mysql/mysql-bin.log
+expire_logs_days    = 1
+max_binlog_size     = 100M

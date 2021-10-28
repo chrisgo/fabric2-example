@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Clean files in the folder that S3FS is using as cache
+# For now, we are using files greater than 30 days
+#
+# this file should get placed on the server in
+# /etc/cron.daily/s3fs_clear_cache
+#
+
+find /tmp/s3fs.{{project_name}}.com -type f -mtime +30 -exec sudo rm {} -f \; 

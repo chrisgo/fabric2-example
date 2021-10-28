@@ -131,7 +131,6 @@ The easiest way to get your Mac setup is to use `homebrew` and `venv`.
 * Install fabric
   * On the same terminal as above
   * `pip install fabric` => installs python3.x fab in `~/venv-fabric2/bin`
-  * See bin/fabfile/README.md for other information
 
 ## TODO
 
@@ -142,7 +141,7 @@ The easiest way to get your Mac setup is to use `homebrew` and `venv`.
 * [x] Replace string manipulation with python f-strings
   * https://realpython.com/python-f-strings/
   * https://stackoverflow.com/questions/42097052/can-i-import-pythons-3-6s-formatted-string-literals-f-strings-into-older-3-x (see `pip install future-fstrings` above)
-* [ ] Make the main __init__.py script have less code by moving code into core/*
+* [x] Make the main __init__.py script have less code by moving code into core/*
   * Global `config` object hard to pass into a class outside main __init__.py
 * [ ] Dashes for task names vs underscore for function name
   * http://docs.pyinvoke.org/en/stable/concepts/namespaces.html#dashes-vs-underscores

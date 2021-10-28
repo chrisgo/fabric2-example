@@ -1,0 +1,176 @@
+##
+## Custom nginx file (SSL)
+##
+
+server {
+
+    # Forward all port 80 to port 443
+    if ($http_x_forwarded_port != 443) { rewrite ^ https://$http_host$request_uri?; }
+    
+    # Server name
+    server_name {{localhost}};
+
+}
+
+server {
+
+    # Port
+    listen   443;
+
+    # Document Root
+    root {{www_root}};
+
+    # Server name
+    server_name {{localhost}};
+
+    # Index file
+    index index.php index.htm;
+
+    # Increase max size of post to 100M (for file uploads)
+    client_max_body_size 100M;
+    client_body_buffer_size 100M;
+
+    # SSL
+    ssl on;
+    ssl_certificate {{ssl_cert}};
+    ssl_certificate_key {{ssl_cert_key}};
+
+    # NEW SSL Settings as of 01/27/20 ---------------------------------------------------
+    # https://cipherli.st/
+    # https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
+    # Old SSL settings in x-nginx-site-ssl
+    
+    ssl_protocols TLSv1.2 TLSv1.3;              # Requires nginx >= 1.13.0 
+    ssl_prefer_server_ciphers on; 
+    ssl_dhparam /etc/nginx/dhparam.pem;         # openssl dhparam -out /etc/nginx/dhparam.pem 4096
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+    ssl_ecdh_curve secp384r1;                   # Requires nginx >= 1.1.0
+    ssl_session_timeout 10m;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_tickets off;                    # Requires nginx >= 1.5.9
+    ssl_stapling on;                            # Requires nginx >= 1.3.7
+    ssl_stapling_verify on;                     # Requires nginx => 1.3.7
+    # #resolver $DNS-IP-1 $DNS-IP-2 valid=300s;
+    # #resolver_timeout 5s; 
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+    
+
+    # Gzip compression
+    gzip  on;
+    gzip_http_version 1.0;
+    gzip_comp_level 2;
+    gzip_proxied any;
+    gzip_min_length  1100;
+    gzip_buffers 16 8k;
+    gzip_types text/plain text/css application/x-javascript application/javascript text/xml application/xml application/xml+rss text/javascript image/gif image/jpeg image/png;
+
+    gzip_disable "MSIE [1-6].(?!.*SV1)";
+    # Set a vary header so downstream proxies don't send cached gzipped
+    # content to IE6
+    gzip_vary on;
+    
+    # For Letsencrypt automation
+    location ~ /.well-known {
+        allow all;
+    }
+
+    # Cache other static files
+    location /media/ {
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff)(\?ver=[0-9.]+)?$ {
+            expires 30d;
+        }
+    }
+    location /media-bt/ {
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff)(\?ver=[0-9.]+)?$ {
+            expires 30d;
+        }
+    }
+    location /media-b3/ {
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff)(\?ver=[0-9.]+)?$ {
+            expires 30d;
+        }
+    }
+    location /media-b4/ {
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff)(\?ver=[0-9.]+)?$ {
+            expires 30d;
+        }
+    }
+    
+    # Don't cache custom js and custom css
+    location /media-b3/css/style.css {
+        expires epoch;
+    }
+    location /media-b3/js/script.js {
+        expires epoch;
+    }
+    location /media-b4/css/style.css {
+        expires epoch;
+    }
+    location /media-b4/css/style-legacy.css {
+        expires epoch;
+    }
+    location /media-b4/js/script.js {
+        expires epoch;
+    }
+    
+    # Add service worker for onesignal script
+    location /media-b3/js/onesignal/ {
+        add_header Service-Worker-Allowed "/";
+    }
+
+	# Main 404
+    location ~ /\. 
+    {
+        return 404;
+    }
+
+	# CORS
+    location / 
+    {    
+        # Enable CORS http://enable-cors.org/
+        # http://blog.rogeriopvl.com/archives/nginx-and-the-http-options-method/
+        if ($request_method = OPTIONS ) {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization";
+            add_header Access-Control-Allow-Credentials "true";
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 200;
+        }
+        
+        # From http://wiki.nginx.org/NginxHttpCoreModule#try_files
+        # Unlike rewrite, $args are not automatically preserved if the fallback is 
+        # not a named location. If you need args preserved, you must do so explicitly:
+        try_files $uri $uri/ /index.php?q=$uri&$args;
+    }
+    
+    # Custom rrror pages
+    #error_page 404 /404.html;
+    # redirect server error pages to the static page /50x.html
+    #
+    #error_page 500 502 503 504 /50x.html;
+    #location = /50x.html {
+    #   root /usr/share/nginx/www;
+    #}
+    
+    # Pass PHP scripts to FastCGI via socket
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        # NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        #
+        # With php7.3-fpm:
+        fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_read_timeout 300s;
+        include fastcgi_params;
+        # Added for nginx 1.8
+        include fastcgi.conf;
+    }
+
+}
+
+

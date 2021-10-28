@@ -1,0 +1,7 @@
+# Repos for newrelic
+
+# PHP Agent
+deb http://apt.newrelic.com/debian/ newrelic non-free
+
+# Infrastructure
+deb [arch=amd64] https://download.newrelic.com/infrastructure_agent/linux/apt buster main

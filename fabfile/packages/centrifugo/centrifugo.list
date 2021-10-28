@@ -1,0 +1,2 @@
+deb https://packagecloud.io/FZambia/centrifugo/debian/ buster main
+deb-src https://packagecloud.io/FZambia/centrifugo/debian/ buster main

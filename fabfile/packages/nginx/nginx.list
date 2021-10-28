@@ -1,0 +1,3 @@
+# Repo to nginx.org instead of debian buster
+deb http://nginx.org/packages/debian/ buster nginx
+deb-src http://nginx.org/packages/debian/ buster nginx

@@ -1,0 +1,12 @@
+.settings
+.project
+.externalToolBuilders
+.pydevproject
+.tags
+.tags_sorted_by_file
+.DS_Store
+*.pyc
+.teeproject
+docs
+.metadata
+/.buildpath
